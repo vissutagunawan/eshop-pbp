@@ -13,7 +13,7 @@
 12. Rename branch menjadi ```main```
 13. ```Add```, ```commit```, ```push``` ke PWS
 14. Membuat ```models```, kemudian ```makemigrations``` dan ```migrate```
-15. Membuat fungsi yang melakukan rendering 
+15. Membuat fungsi (pada `views.py`) yang me-_render_ HTML yang ada pada `main.html` pada direktori `templates`
 16. Menambah ```include(main.urls)``` pada ```urls.py``` yang berada pada direktori utama
 17. Menambah ```path('', show_main, name='main')``` pada ```urls.py``` pada direktori projek
 18. ```Add```, ```commit```, ```push``` ke branch ```main``` dan ```pws main:master```
@@ -51,4 +51,4 @@ Git adalah sistem kontrol versi terdistribusi yang memainkan peran krusial dalam
 Django adalah salah satu framework Python, yang sering digunakan untuk _backend development_ yang merupakan _high-level programming language_ yang membuat framework tersebut mudah dipelajari karena _syntax_-nya _self-explanatory_ sehingga penggunaannya mudah dan memiliki tingkat _readibility_ yang tinggi yang membuat kodenya mudah dipahami oleh developer lain ketika melakukan kolaborasi. Selain itu, dibandingkan dengan Flask, yang merupakan _framework_ Python yang sering digunakan _backend dev_ juga. Hal yang membuat Django lebih ramah pemula dibanding Flask adalah karena banyak _builtin function_ yang telah disediakan, sedangkan Flask cenderung "build from scratch". Django juga 
 
 ### Mengapa model pada Django disebut sebagai ORM?
-Model pada Django disebut sebagai ORM atau _Object Relational Mapping_ karena models pada Django menerapkan prinsip _Object Oriented Programming_ yang memandang setiap entitas sebagai sebuah objek yang memiliki sekumpulan atribut yang setiap atributnya merepresentasikan sebuah kolom pada basis data.
+Model pada Django disebut sebagai ORM (Object Relational Mapping) karena berfungsi sebagai penghubung antara pemrograman berorientasi objek dan sistem basis data relasional. ORM memungkinkan pengembang berinteraksi dengan basis data menggunakan kode Python, tanpa perlu menulis query SQL langsung. Setiap kelas model mewakili tabel dalam basis data, dengan atribut-atribut kelas memetakan ke kolom-kolom tabel. Django ORM menyediakan abstraksi basis data, pemetaan objek-tabel, enkapsulasi logika bisnis, independensi basis data, API query yang kuat, migrasi otomatis, validasi data, manajemen relasi antar-model, lazy loading, dan mekanisme caching. Pendekatan ini menjembatani kesenjangan antara paradigma OOP dan model data relasional, memungkinkan pengembang bekerja dengan data secara lebih intuitif dan efisien.
