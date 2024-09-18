@@ -1,3 +1,5 @@
+{% extends 'base.html' %}
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -6,7 +8,36 @@
     <title>{{nama_aplikasi}}</title>
   </head>
   <body>
+    {% block content %}
     <h1>{{nama_aplikasi}}</h1>
     <h2>by {{nama}} dari kelas {{kelas}}</h2>
+
+    {% if not products %}
+    <p>Belum ada data product pada Sutashop</p>
+    {% else %}
+    <table>
+      <tr>
+        <th>Product Name</th>
+        <th>Product Price</th>
+        <th>Product Description</th>
+        <th>Product Stock</th>
+      </tr>
+
+      {% comment %} Berikut cara memperlihatkan data product di bawah baris ini
+      {% endcomment %} {% for product in products %}
+      <tr>
+        <td>{{product.name}}</td>
+        <td>{{product.price}}</td>
+        <td>{{product.description}}</td>
+        <td>{{product.stock}}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% endif %}
+    <br />
+    <a href="{% url 'main:create_product' %}">
+      <button>Add New Product</button>
+    </a>
+    {% endblock content %}
   </body>
 </html>
