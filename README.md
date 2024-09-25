@@ -278,4 +278,310 @@ Berikut foto hasil `GET` request pada Postman
 ![image](https://github.com/user-attachments/assets/31ee05fe-b2bc-4f35-a05d-3c6f72ad15ad)
 
 
+# TUGAS 4
+
+### Apa perbedaan antara HttpResponseRedirect() dan redirect()
+
+Perbedaan antara HttpResponseRedirect() dan redirect() adalah fleksibilitas yang ditawarkan, HttpResponseRedirect() adalah kelas dasar yang digunakan untuk melakukan redirect, namun memerlukan URL lengkap sebagai argumen, sedangkan redirect() adalah fungsi yang lebih __high level__ dan fleksibel sehingga dapat menerima berbagai jenis argumen seperti nama __view__, URL relatif, dan URL lengkap.
+
+### Jelaskan cara kerja penghubungan model Product dengan User!
+Penghubungan dilakukan melalui ForeignKey. Ini menciptakan hubungan __"many-to-one"__ antara Product dan User. Artinya:
+
+* Setiap produk terkait dengan satu pengguna.
+* Satu pengguna dapat memiliki banyak produk.
+* on_delete=models.CASCADE berarti jika pengguna dihapus, semua produk terkait juga akan dihapus.
+
+Dalam __database__, ini akan menciptakan kolom user_id di tabel Product yang merujuk ke id di tabel User.
+
+### Apa perbedaan antara authentication dan authorization, apakah yang dilakukan saat pengguna login? Jelaskan bagaimana Django mengimplementasikan kedua konsep tersebut.
+Perbedaan antara __authentication__ dan __authorization__ terletak pada prosesnya. __Authentication__ adalah proses memverifikasi identitas pengguna (menjawab pertanyaan "Siapa Anda?"), sedangkan __authorization__ adalah proses menentukan apa yang diizinkan untuk dilakukan oleh pengguna yang sudah terautentikasi (menjawab pertanyaan "Apa yang boleh Anda lakukan?"). Saat pengguna __login__, proses yang terjadi adalah autentikasi. Django mengimplementasikan kedua konsep ini melalui:
+
+* Autentikasi: Menggunakan sistem autentikasi bawaan yang melibatkan User model dan fungsi seperti authenticate().
+* Otorisasi: Menggunakan sistem izin (permissions) dan grup yang dapat diterapkan ke pengguna.
+
+### Bagaimana Django mengingat pengguna yang telah login? Jelaskan kegunaan lain dari cookies dan apakah semua cookies aman digunakan?
+Django menggunakan session untuk mengingat pengguna yang telah login. Session ID disimpan dalam cookie di browser pengguna, sementara data session disimpan di server.
+Kegunaan lain dari cookies:
+
+* Menyimpan preferensi pengguna
+* Melacak aktivitas pengguna untuk analitik
+* Menyimpan item keranjang belanja di situs e-commerce
+* Mengelola status login di berbagai halaman
+
+Tidak semua cookies aman digunakan. Cookies dapat menjadi risiko keamanan jika:
+
+* Mereka menyimpan informasi sensitif tanpa enkripsi
+* Mereka rentan terhadap serangan seperti XSS (Cross-Site Scripting) atau CSRF (Cross-Site Request Forgery)
+* Mereka digunakan untuk melacak pengguna tanpa izin
+
+Penting untuk menggunakan cookies dengan bijak dan mengikuti praktik keamanan terbaik, seperti menggunakan HTTPS, mengatur flag HttpOnly dan Secure pada cookies yang sensitif, dan menghindari penyimpanan data sensitif dalam cookies.
+
+### Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial).
+
+#### Mengimplementasikan fungsi registrasi, login, dan logout untuk memungkinkan pengguna untuk mengakses aplikasi sebelumnya dengan lancar.
+Membuat fungsi `register`, `login_user`, dan `logout_user` pada `views.py`
+
+```python 
+def register(request):
+    form = UserCreationForm()
+
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your account has been successfully created!')
+            return redirect('main:login')
+    context = {'form':form}
+    return render(request, 'register.html', context)
+
+def login_user(request):
+   if request.method == 'POST':
+      form = AuthenticationForm(data=request.POST)
+
+      if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('main:show_main')
+
+   else:
+      form = AuthenticationForm(request)
+   context = {'form': form}
+   return render(request, 'login.html', context)
+
+def logout_user(request):
+    logout(request)
+    return redirect('main:login')
+```
+
+Menambah endpoints pada `urls.py`
+```python
+urlpatterns = [
+    ...
+    path('register/', register, name='register'),
+    path('login/', login_user, name='login'),
+    path('logout/', logout_user, name='logout')
+]
+```
+
+Membuat halaman `HTML` untuk register dan login
+```html 
+// register.html
+{% extends 'base.html' %}
+
+{% block meta %}
+<title>Register</title>
+{% endblock meta %}
+
+{% block content %}
+
+<div class="login">
+  <h1>Register</h1>
+
+  <form method="POST">
+    {% csrf_token %}
+    <table>
+      {{ form.as_table }}
+      <tr>
+        <td></td>
+        <td><input type="submit" name="submit" value="Daftar" /></td>
+      </tr>
+    </table>
+  </form>
+
+  {% if messages %}
+  <ul>
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+{% endblock content %}
+```
+
+```html 
+// login.html
+{% extends 'base.html' %}
+
+{% block meta %}
+<title>Login</title>
+{% endblock meta %}
+
+{% block content %}
+<div class="login">
+  <h1>Login</h1>
+
+  <form method="POST" action="">
+    {% csrf_token %}
+    <table>
+      {{ form.as_table }}
+      <tr>
+        <td></td>
+        <td><input class="btn login_btn" type="submit" value="Login" /></td>
+      </tr>
+    </table>
+  </form>
+
+  {% if messages %}
+  <ul>
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %} Don't have an account yet?
+  <a href="{% url 'main:register' %}">Register Now</a>
+</div>
+
+{% endblock content %}
+```
+
+Merestriksi halaman main hanya untuk pengguna yang sudah login
+
+```python
+...
+@login_required(login_url='/login')
+def show_main(request):
+...
+```
+
+Menggunakan data dari cookies
+
+Modifikasi fungsi login_user:
+
+```python
+def login_user(request):
+    if request.method == 'POST':
+        # ... kode lainnya ...
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            response = HttpResponseRedirect(reverse("main:show_main"))
+            response.set_cookie('last_login', str(datetime.datetime.now()))
+            return response
+    # ... kode lainnya ...
+```
+
+Penjelasan:
+* response = HttpResponseRedirect(reverse ("main:show_main")) membuat response redirect ke halaman utama.
+* response.set_cookie('last_login', str(datetime.datetime.now())) membuat cookie last_login dengan nilai waktu saat ini dan menambahkannya ke response.
+
+
+Modifikasi fungsi show_main:
+
+```python
+@login_required(login_url='/login')
+def show_main(request):
+    # ... kode lainnya ...
+    context = {
+        'name': 'Pak Bepe',
+        'class': 'PBP D',
+        'npm': '2306123456',
+        'mood_entries': mood_entries,
+        'last_login': request.COOKIES['last_login'],
+    }
+    # ... kode lainnya ...
+```
+
+Penjelasan:
+'last_login': request.COOKIES['last_login'] menambahkan informasi waktu login terakhir dari cookie ke dalam context yang akan ditampilkan di halaman web.
+
+Modifikasi fungsi logout_user:
+
+```python
+def logout_user(request):
+    logout(request)
+    response = HttpResponseRedirect(reverse('main:login'))
+    response.delete_cookie('last_login')
+    return response
+```
+
+Penjelasan:
+* response = HttpResponseRedirect(reverse('main:login')) membuat response redirect ke halaman login.
+* response.delete_cookie('last_login') menghapus cookie last_login saat user melakukan logout.
+
+Modifikasi template main.html:
+
+```html
+<!-- ... kode lainnya ... -->
+<h5>Sesi terakhir login: {{ last_login }}</h5>
+<!-- ... kode lainnya ... -->
+```
+
+Menambah ForeignKey user pada model Product untuk menghubungkan pengguna dengan Product yang dibuat melalui form. Ini menciptakan hubungan __"many-to-one"__ antara Product dan User.
+```python
+class Product(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    ...
+```
+
+#### Membuat dua akun pengguna dengan masing-masing tiga dummy data menggunakan model yang telah dibuat pada aplikasi sebelumnya untuk setiap akun di lokal.
+Melakukan register, kemudian login menggunakan akun yang sudah ter-__register__ dan isi form pembuatan produk sebanyak tiga kali. Lakukan hal tersebut sebanyak dua kali.
+
+#### Menghubungkan model Product dengan User.
+Menambah ForeignKey user pada model Product untuk menghubungkan pengguna dengan Product yang dibuat melalui form. Ini menciptakan hubungan __"many-to-one"__ antara Product dan User.
+```python
+class Product(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    ...
+```
+
+#### Menampilkan detail informasi pengguna yang sedang logged in seperti username dan menerapkan cookies seperti last login pada halaman utama aplikasi.
+
+Informasi pengguna yang sedang logged in dapat diakses melalui request yang terkirim oleh pengguna terkait sehingga dapat __display__ informasi username pengguna dapat dilakukan sebagai berikut
+
+```python
+def show_main(request):
+    mood_entries = MoodEntry.objects.filter(user=request.user)
+
+    context = {
+         'name': request.user.username,
+         ...
+    }
+```
+
+Menyimpan waktu login terakhir sesuai dengan pengguna yang login
+```python
+def login_user(request):
+    if request.method == 'POST':
+        # ... kode lainnya ...
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            response = HttpResponseRedirect(reverse("main:show_main"))
+            response.set_cookie('last_login', str(datetime.datetime.now()))
+            return response
+    # ... kode lainnya ...
+```
+
+Me-__render__ waktu terakhir login pengguna
+```python
+@login_required(login_url='/login')
+def show_main(request):
+    # ... kode lainnya ...
+    context = {
+        'name': 'Pak Bepe',
+        'class': 'PBP D',
+        'npm': '2306123456',
+        'mood_entries': mood_entries,
+        'last_login': request.COOKIES['last_login'],
+    }
+    # ... kode lainnya ...
+```
+
+Menambahkan informasi waktu terakhir login pengguna pada main.html
+```html
+<!-- ... kode lainnya ... -->
+<h5>Sesi terakhir login: {{ last_login }}</h5>
+<!-- ... kode lainnya ... -->
+```
+
+Berikut adalah mekanisme cara kerja integrasi ketiga fungsi tersebut dengan aplikasi sebelumnya.
+
+__By default__ (localhost:8000), pengguna akan mendarat di halaman login, kemudian dihadapkan dengan pilihan untuk register atau login. Jika belum ada akun, pengguna akan memilih register dan akan diarahkan menuju page register.html. Pengguna akan mengisi form pembuatan akun dengan username dan password. Jika valid, pengguna akan di-__redirect__ ke halaman login dan pengguna akan di-__expect__ untuk melakukan login dengan akun yang baru dibuat. Jika sudah ada akun, pengguna di-__expect__ untuk melakukan login secara langsung. Pada tahap ini, pengguna memasukkan username dan password pada form login. Jika username dan password match dan terdapat pada database user, pengguna akan diarahkan ke page main, jika tidak, pengguna akan diminta untuk login terus (`python render(request, 'login.html', context)`). Jika sudah berhasil login, maka yang akan tampil adalah form untuk menambah produk yang sudah diimplementasikan minggu lalu. Pada proses logout, pengguna akan di-__redirect__ ke halaman login.
+
+
+
+
+
 
