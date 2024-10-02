@@ -585,10 +585,10 @@ __By default__ (localhost:8000), pengguna akan mendarat di halaman login, kemudi
 
 ### Jika terdapat beberapa CSS selector untuk suatu elemen HTML, jelaskan urutan prioritas pengambilan CSS selector tersebut!
 Urutan prioritas CSS selector, juga dikenal sebagai specificity, adalah sebagai berikut (dari prioritas tertinggi ke terendah):
-a. Inline styles
-b. ID selectors
-c. Class selectors, attribute selectors, dan pseudo-classes
-d. Element selectors dan pseudo-elements
+a. Inline styles 
+b. ID selectors 
+c. Class selectors, attribute selectors, dan pseudo-classes 
+d. Element selectors dan pseudo-elements 
 e. Universal selector (*)
 Jika dua selector memiliki specificity yang sama, maka selector yang ditulis terakhir dalam stylesheet akan digunakan.
 
