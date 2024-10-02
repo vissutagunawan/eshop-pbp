@@ -581,6 +581,108 @@ Berikut adalah mekanisme cara kerja integrasi ketiga fungsi tersebut dengan apli
 __By default__ (localhost:8000), pengguna akan mendarat di halaman login, kemudian dihadapkan dengan pilihan untuk register atau login. Jika belum ada akun, pengguna akan memilih register dan akan diarahkan menuju page register.html. Pengguna akan mengisi form pembuatan akun dengan username dan password. Jika valid, pengguna akan di-__redirect__ ke halaman login dan pengguna akan di-__expect__ untuk melakukan login dengan akun yang baru dibuat. Jika sudah ada akun, pengguna di-__expect__ untuk melakukan login secara langsung. Pada tahap ini, pengguna memasukkan username dan password pada form login. Jika username dan password match dan terdapat pada database user, pengguna akan diarahkan ke page main, jika tidak, pengguna akan diminta untuk login terus (`python render(request, 'login.html', context)`). Jika sudah berhasil login, maka yang akan tampil adalah form untuk menambah produk yang sudah diimplementasikan minggu lalu. Pada proses logout, pengguna akan di-__redirect__ ke halaman login.
 
 
+# TUGAS 5
+
+### Jika terdapat beberapa CSS selector untuk suatu elemen HTML, jelaskan urutan prioritas pengambilan CSS selector tersebut!
+Urutan prioritas CSS selector, juga dikenal sebagai specificity, adalah sebagai berikut (dari prioritas tertinggi ke terendah):
+a. Inline styles
+b. ID selectors
+c. Class selectors, attribute selectors, dan pseudo-classes
+d. Element selectors dan pseudo-elements
+e. Universal selector (*)
+Jika dua selector memiliki specificity yang sama, maka selector yang ditulis terakhir dalam stylesheet akan digunakan.
+
+### Mengapa responsive design menjadi konsep yang penting dalam pengembangan aplikasi web? Berikan contoh aplikasi yang sudah dan belum menerapkan responsive design!
+Responsive design sangat penting karena:
+
+* Pengguna mengakses web dari berbagai perangkat (desktop, tablet, smartphone)
+* Meningkatkan user experience
+* Membantu SEO (Search Engine Optimization)
+* Lebih efisien daripada membuat versi mobile terpisah
+
+Contoh aplikasi yang menerapkan responsive design:
+
+* Amazon.com
+* The New York Times (nytimes.com)
+
+Contoh aplikasi yang belum sepenuhnya menerapkan responsive design:
+
+* Craigslist.org (meski ada versi mobilenya, tapi bukan responsive design)
+* Space Jam (www.spacejam.com/1996) - website lama yang sengaja dipertahankan
+
+### Jelaskan perbedaan antara margin, border, dan padding, serta cara untuk mengimplementasikan ketiga hal tersebut!
+* Margin: Ruang di luar elemen, antara elemen dengan elemen lain di sekitarnya
+* Border: Garis yang mengelilingi elemen
+* Padding: Ruang di dalam elemen, antara konten dengan border
+Contoh:
+```css
+.element {
+    margin: 10px;  /* Ruang di luar elemen */
+    border: 2px solid black;  /* Garis tepi elemen */
+    padding: 5px;  /* Ruang di dalam elemen */
+}
+```
+
+### Jelaskan konsep flex box dan grid layout beserta kegunaannya!
+Flexbox:
+
+* Digunakan untuk layout satu dimensi (baris atau kolom)
+* Sangat baik untuk mendistribusikan ruang di antara item dalam container
+* Berguna untuk membuat layout yang fleksibel dan responsif
+
+* Kegunaan: Navigasi bar, card layouts, centering content
+
+Grid Layout:
+
+* Digunakan untuk layout dua dimensi (baris dan kolom sekaligus)
+* Memungkinkan kontrol yang lebih presisi atas penempatan elemen
+* Ideal untuk layout halaman keseluruhan
+
+Kegunaan: Magazine-style layouts, dashboard layouts, photo galleries
+
+Kedua sistem ini saling melengkapi dan dapat digunakan bersamaan untuk membuat layout yang kompleks dan responsif.
+
+### Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial)!
+
+Menambahkan tailwindcss pada `base.html`
+
+```html
+<head>
+  ...
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+</head>
+```
+
+Menambah fungsi `edit_product` dan `delete_product` pada `views.py`
+
+```python
+def edit_product(request, id):
+    product = Product.objects.get(pk=id)
+    form = ProductForm(request.POST or None, instance=product)
+    if form.is_valid() and request.method == "POST":
+        form.save()
+        return  HttpResponseRedirect(reverse('main:show_main'))
+    context = {'form': form}
+    return render(request, "edit_product.html", context)
+
+def delete_product(request, id):
+    product = Product.objects.get(pk=id)
+    product.delete()
+    return HttpResponseRedirect(reverse('main:show_main'))
+```
+
+Implementasi Login, Register, Tambah Produk, Edit Produk, dan lain-lain dapat dilihat pada link di bawah ini
+
+* [Login](https://github.com/vissutagunawan/eshop-pbp/blob/master/main/templates/login.html)
+* [Register](https://github.com/vissutagunawan/eshop-pbp/blob/master/main/templates/register.html)
+* [Create Product](https://github.com/vissutagunawan/eshop-pbp/blob/master/main/templates/create_product.html)
+* [Edit Product](https://github.com/vissutagunawan/eshop-pbp/blob/master/main/templates/edit_product.html)
+* [Card Product](https://github.com/vissutagunawan/eshop-pbp/blob/master/main/templates/card_product.html)
+* [Navigation Bar](https://github.com/vissutagunawan/eshop-pbp/blob/master/templates/navbar.html)
+
+
+
 
 
 
