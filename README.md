@@ -681,7 +681,281 @@ Implementasi Login, Register, Tambah Produk, Edit Produk, dan lain-lain dapat di
 * [Card Product](https://github.com/vissutagunawan/eshop-pbp/blob/master/main/templates/card_product.html)
 * [Navigation Bar](https://github.com/vissutagunawan/eshop-pbp/blob/master/templates/navbar.html)
 
+# TUGAS 6
 
+
+### Manfaat penggunaan JavaScript dalam pengembangan aplikasi web:
+
+JavaScript memberikan banyak manfaat dalam pengembangan aplikasi web, antara lain:
+
+* Interaktivitas: JavaScript memungkinkan pembuatan elemen interaktif seperti formulir dinamis, animasi, dan pembaruan konten tanpa perlu memuat ulang halaman.
+* Manipulasi DOM: Memungkinkan pengembang untuk memanipulasi struktur, gaya, dan konten halaman web secara dinamis.
+* Asynchronous Programming: Mendukung operasi asinkron, memungkinkan aplikasi web untuk melakukan tugas-tugas tanpa menghentikan eksekusi kode lainnya.
+* Client-side Processing: Mengurangi beban server dengan memproses data di sisi klien.
+* Single Page Applications (SPA): Memungkinkan pembuatan aplikasi web yang berjalan di satu halaman, meningkatkan kecepatan dan pengalaman pengguna.
+* Kompatibilitas Lintas Platform: Berjalan di berbagai browser dan perangkat.
+
+
+### Fungsi await pada penggunaan fetch():
+
+`await` digunakan bersama `fetch()` untuk menangani operasi asinkron dengan cara yang lebih mudah dibaca dan dikelola. Fungsinya adalah:
+
+* Menghentikan eksekusi fungsi `async` sampai `Promise` dari `fetch()` diselesaikan.
+* Memungkinkan kode untuk ditulis secara sekuensial, meskipun operasinya asinkron.
+* Mengembalikan nilai yang di-resolve oleh Promise.
+
+Jika tidak menggunakan await:
+
+Kode akan terus dieksekusi tanpa menunggu `fetch()` selesai.
+Kita harus menggunakan `.then()` untuk menangani hasil fetch, yang bisa menyebabkan "callback hell" jika ada banyak operasi asinkron berurutan.
+Penanganan error menjadi lebih rumit karena kita harus menggunakan `.catch()` terpisah.
+
+
+Penggunaan decorator `csrf_exempt` pada view untuk AJAX `POST`:
+
+Kita perlu menggunakan decorator `csrf_exempt` pada view yang akan digunakan untuk AJAX `POST` karena:
+
+CSRF (Cross-Site Request Forgery) protection di Django secara default memerlukan token CSRF untuk setiap request `POST`.
+Dalam permintaan AJAX, terutama dari domain lain atau aplikasi frontend terpisah, sering kali sulit untuk menyertakan token CSRF.
+csrf_exempt memungkinkan view tersebut diakses tanpa pemeriksaan token CSRF, memudahkan integrasi dengan aplikasi frontend atau API.
+
+Namun, perlu diingat bahwa penggunaan csrf_exempt mengurangi keamanan aplikasi terhadap serangan CSRF. Sebaiknya hanya digunakan jika benar-benar diperlukan, dan disertai dengan mekanisme keamanan alternatif seperti autentikasi token.
+
+### Pada tutorial PBP minggu ini, pembersihan data input pengguna dilakukan di belakang (backend) juga. Mengapa hal tersebut tidak dilakukan di frontend saja?
+Pembersihan data input pengguna dilakukan di backend (server-side) dan bukan hanya di frontend (client-side) karena beberapa alasan penting:
+
+1. Keamanan yang lebih baik:
+* Frontend bisa dimanipulasi oleh pengguna yang memiliki pengetahuan teknis.
+* Pembersihan di backend memastikan bahwa data yang masuk ke database sudah aman, terlepas dari manipulasi client-side.
+
+2. Konsistensi:
+* Backend menjamin semua data dibersihkan dengan standar yang sama, tidak peduli dari mana data itu berasal (web, mobile app, API calls).
+
+3. Validasi yang dapat diandalkan:
+* Server memiliki kontrol penuh atas proses validasi dan pembersihan data.
+* Menghindari risiko jika JavaScript dinonaktifkan di browser pengguna.
+
+4. Perlindungan terhadap serangan langsung ke API:
+* Pembersihan di backend melindungi dari serangan yang melewati frontend dan langsung ke API.
+
+5. Pencegahan injeksi database:
+* Backend dapat memastikan data aman sebelum dimasukkan ke database, mencegah SQL injection.
+
+6. Fleksibilitas:
+* Memudahkan penerapan aturan pembersihan yang kompleks atau yang sering berubah.
+
+7. Kinerja:
+* Beberapa proses pembersihan mungkin lebih efisien dilakukan di server.
+
+8. Kepatuhan:
+* Beberapa regulasi keamanan data mungkin mengharuskan validasi server-side.
+
+Meskipun demikian, pembersihan di frontend tetap penting untuk:
+
+* Meningkatkan user experience dengan feedback cepat.
+* Mengurangi beban server dengan menangani kesalahan sederhana di client.
+* Memberikan lapisan keamanan tambahan.
+
+Idealnya, pembersihan data dilakukan di kedua sisi untuk keamanan berlapis dan pengalaman pengguna yang optimal.
+
+### Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial)!
+
+* Menambah error message pada login saat kombinasi username dan password salah
+
+```python 
+messages.error(request, "Invalid username or password. Please try again.")
+```
+
+* Membuat fungsi untuk menambahkan produk dengan AJAX (Asynchronous JS and XML) dengan decorator `csrf_exempt` yang membuat Django tidak mengecek apakah `csrf_token` ada pada request `POST` tersebut dan `require_POST` yang mewajibkan pemanggilan `POST` method untuk mengakses fungsi ini, __otherwise__ akan di-__return__ `405 Method Not Allowed`, serta menambah __routing__ untuk fungsi tersebut.
+
+```python
+@csrf_exempt
+@require_POST
+def add_product_ajax(request):
+    
+    name = request.POST.get('name')
+    price = request.POST.get('price')
+    description = request.POST.get('description')
+    stock = request.POST.get('stock')
+
+    user = request.user
+
+    new_product = Product(name=name, price=price, description=description, stock=stock, user=user)
+    new_product.save()
+
+    return HttpResponse(b"CREATED", status=201)
+```
+
+* Membuat fungsi `getProducts()` untuk mengambil data produk dengan AJAX
+
+```javascript
+async function getProducts() {
+    return fetch("{% url 'main:show_json' %}").then((res) => res.json())
+}
+```
+
+* Membuat fungsi `refreshProducts()` untuk me-__refresh__ data produk secara asinkronus
+
+```javascript
+async function refreshProducts() {
+    document.getElementById("product_cards").innerHTML = "";
+    document.getElementById("product_cards").className = "";
+    const products = await getProducts();
+    let htmlString = "";
+    let classNameString = "";
+
+    if (products.length === 0) {
+        classNameString = "flex flex-col items-center justify-center min-h-[24rem] p-6";
+        htmlString = `
+            <div class="flex flex-col items-center justify-center min-h-[24rem] p-6">
+                <img src="{% static 'image/empty-shop.png' %}" alt="Empty shop" class="w-32 h-32 mb-4"/>
+                <p class="text-center text-gray-600 mt-4">Belum ada produk yang tersedia di toko.</p>
+            </div>
+        `;
+    }
+    else {
+        classNameString = "columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6 w-full"
+        products.forEach((item) => {
+            htmlString += `
+            <div class="relative break-inside-avoid">
+                <!-- Kode HTML untuk kartu produk -->
+            </div>
+            `;
+        });
+    }
+    document.getElementById("product_cards").className = classNameString;
+    document.getElementById("product_cards").innerHTML = htmlString;
+}
+refreshProducts();
+```
+
+* Membuat modal sebagai form untuk menambahkan produk baru
+
+```html
+<div id="crudModal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 w-full flex items-center justify-center bg-gray-800 bg-opacity-50 overflow-x-hidden overflow-y-auto transition-opacity duration-300 ease-out">
+  <div id="crudModalContent" class="relative bg-white rounded-lg shadow-lg w-5/6 sm:w-3/4 md:w-1/2 lg:w-1/3 mx-4 sm:mx-0 transform scale-95 opacity-0 transition-transform transition-opacity duration-300 ease-out">
+    <!-- Kode HTML untuk modal -->
+  </div>
+</div>
+```
+
+* Membuat fungsi JavaScript untuk menampilkan dan menyembunyikan modal
+
+```javascript
+function showModal() {
+    const modal = document.getElementById('crudModal');
+    const modalContent = document.getElementById('crudModalContent');
+
+    modal.classList.remove('hidden'); 
+    setTimeout(() => {
+      modalContent.classList.remove('opacity-0', 'scale-95');
+      modalContent.classList.add('opacity-100', 'scale-100');
+    }, 50); 
+}
+
+function hideModal() {
+    const modal = document.getElementById('crudModal');
+    const modalContent = document.getElementById('crudModalContent');
+
+    modalContent.classList.remove('opacity-100', 'scale-100');
+    modalContent.classList.add('opacity-0', 'scale-95');
+
+    setTimeout(() => {
+      modal.classList.add('hidden');
+    }, 150); 
+}
+```
+
+* Menambahkan tombol untuk menambahkan produk baru dengan AJAX
+
+```html
+<button data-modal-target="crudModal" data-modal-toggle="crudModal" class="btn bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105" onclick="showModal();">
+  Tambah Produk Baru dengan AJAX
+</button>
+```
+
+Membuat fungsi `addProduct()` untuk menambahkan produk baru dengan AJAX
+
+```javascript
+function addProduct() {
+  fetch("{% url 'main:add_product_ajax' %}", {
+    method: "POST",
+    body: new FormData(document.querySelector('#productForm'))
+  })
+  .then(response => refreshProducts())
+
+  document.getElementById("productForm").reset(); 
+  document.querySelector("[data-modal-toggle='crudModal']").click();
+
+  return false;
+}
+```
+
+Menambahkan event listener pada form untuk menjalankan fungsi `addProduct()`
+
+```javascript
+document.getElementById("productForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  addProduct();
+})
+```
+
+Menambahkan proteksi terhadap Cross Site Scripting (XSS) dengan menggunakan `strip_tags` di `views.py`
+
+```python
+from django.utils.html import strip_tags
+
+@csrf_exempt
+@require_POST
+def add_product_ajax(request):
+    name = strip_tags(request.POST.get("name"))
+    description = strip_tags(request.POST.get("description"))
+    price = request.POST.get("price")
+    stock = request.POST.get("stock")
+    
+    # Lanjutan kode untuk menyimpan produk
+```
+
+Menambahkan metode `clean_name()` dan `clean_description()` pada `ProductForm` di `forms.py`
+
+```python
+from django.utils.html import strip_tags
+
+class ProductForm(ModelForm):
+    class Meta:
+        model = Product
+        fields = ["name", "price", "description", "stock"]
+    
+    def clean_name(self):
+        name = self.cleaned_data["name"]
+        return strip_tags(name)
+
+    def clean_description(self):
+        description = self.cleaned_data["description"]
+        return strip_tags(description)
+```
+
+Menambahkan `DOMPurify` untuk membersihkan data di sisi klien
+
+```html
+{% block meta %}
+...
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
+...
+{% endblock meta %}
+```
+
+```javascript
+async function refreshProducts() {
+    // ...
+    products.forEach((item) => {
+        const name = DOMPurify.sanitize(item.fields.name);
+        const description = DOMPurify.sanitize(item.fields.description);
+        // Gunakan variabel name dan description yang telah dibersihkan
+    });
+    // ...
+}
+```
 
 
 
